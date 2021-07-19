@@ -16,11 +16,13 @@ exports.SignUp = (req, res) => {
             ApiSecret=${process.env.APISECRET}&
             userId=${createdUser.userId}`;
 
-        //const token = await axios.post(url, req.body);
+        const token = await axios.post(url, req.body);
 
         return res.status(httpStatus.CREATED).json({
-          //token: token,
-          data: createdUser,
+          token: token,
+          user: createdUser,
+          team: req.body.teamName,
+          project: req.body.projectName,
         });
       })
       .catch((err) => {
@@ -48,7 +50,7 @@ exports.LogIn = (req, res) => {
 
         return res.status(httpStatus.OK).json({
           token: token.data,
-          data: user,
+          user: user,
         });
       } else {
         return res.status(httpStatus.UNAUTHORIZED).json({
