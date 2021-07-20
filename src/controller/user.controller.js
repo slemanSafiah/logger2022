@@ -11,15 +11,11 @@ exports.SignUp = (req, res) => {
     req.body.password = password;
     User.create(req.body)
       .then(async (createdUser) => {
-        let url = `https://projectfifthyear.herokuapp.com/Users?
-            ApiKey=${process.env.APIKEY}&
-            ApiSecret=${process.env.APISECRET}&
-            userId=${createdUser.userId}`;
+        let url = `https://projectfifthyear.herokuapp.com/Users/signup?ApiKey=${process.env.APIKEY}&ApiSecret=${process.env.APISECRET}&userId=${createdUser.userId}`;
 
         const token = await axios.post(url, req.body);
-
         return res.status(httpStatus.CREATED).json({
-          token: token,
+          token: token.data,
           user: createdUser,
           team: req.body.teamName,
           project: req.body.projectName,
@@ -35,10 +31,12 @@ exports.SignUp = (req, res) => {
 };
 
 exports.LogIn = (req, res) => {
-  User.findOne({ email: req.body.email })
+  User.findOne(
+    req.body.email ? { email: req.body.email } : { userName: req.body.userName }
+  )
     .then(async (user) => {
       if (bcrypt.compareSync(req.body.password, user.password)) {
-        const url = `https://projectfifthyear.herokuapp.com/Users?ApiKey=${process.env.APIKEY}&ApiSecret=${process.env.APISECRET}&userId=${user.userId}`;
+        const url = `https://projectfifthyear.herokuapp.com/Users/signin?ApiKey=${process.env.APIKEY}&ApiSecret=${process.env.APISECRET}&userId=${user.userId}`;
 
         const token = await axios({
           method: "post",
