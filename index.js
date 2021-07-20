@@ -48,7 +48,7 @@ mongoose.connect(process.env.MongoDB_URI, {
   connectTimeoutMS: 36000,
 });
 mongoose.connection.on("open", () => {
-  console.log("Connect to DB ...");
+  console.log("Connect to DB .....");
 });
 mongoose.connection.on("error", (err) => {
   console.log("Error in DB ...\n", err);
