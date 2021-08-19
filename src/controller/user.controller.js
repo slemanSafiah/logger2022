@@ -4,8 +4,7 @@ const { v4: uuidv4 } = require("uuid");
 const hashPassword = require("../util/hash.helper");
 const bcrypt = require("bcryptjs");
 const axios = require("axios");
-const mongoose = require('mongoose');
-
+const mongoose = require("mongoose");
 
 exports.SignUp = (req, res) => {
   req.body.userId = uuidv4();
@@ -33,7 +32,6 @@ exports.SignUp = (req, res) => {
 };
 
 exports.LogIn = (req, res) => {
-  console.log(1);
   User.findOne(
     req.body.email ? { email: req.body.email } : { userName: req.body.userName }
   )
@@ -65,18 +63,17 @@ exports.LogIn = (req, res) => {
       });
     });
 };
-
 exports.addUser = (req, res) => {
   req.body.userId = uuidv4();
   hashPassword(req.body.password).then((password) => {
     req.body.password = password;
     User.create(req.body)
       .then(async (createdUser) => {
-        let url = `https://projectfifthyear.herokuapp.com/Users?sessionId=${req.params.sessionId}&Id=${req.body.userId}&Name=${req.body.name}&UserName=${req.body.userName}&Email=${req.body.email}`;
+        let url = `https://projectfifthyear.herokuapp.com/Users?sessionId=${req.body.sessionId}&Id=${req.body.userId}&Name=${req.body.name}&UserName=${req.body.userName}&Email=${req.body.email}`;
 
         const token = await axios.post(url);
         return res.status(httpStatus.CREATED).json({
-          user: createdUser
+          user: createdUser,
         });
       })
       .catch((err) => {
@@ -86,17 +83,21 @@ exports.addUser = (req, res) => {
         });
       });
   });
-
-}
+};
 
 exports.deleteUser = async (req, res) => {
   const session = await mongoose.startSession();
   await session.withTransaction(async (session) => {
-    User.deleteOne({ userId: req.body.teamMemberId }).then(async (data) => {
-      let url = `https://projectfifthyear.herokuapp.com/Users?sessionId=${req.params.sessionId}&userId=${req.body.teamMemberId}`;
-      await axios.delete(url);
-    })
-  })
-  session.endSession();
-  return res.status(httpStatus.OK).json({});
-}
+    const url = `https://projectfifthyear.herokuapp.com/Users?sessionId=${req.body.sessionId}&userId=${req.body.teamMemberId}`;
+    const result = await axios.delete(url);
+    await User.deleteOne(
+      { userId: req.body.teamMemberId },
+      { session: session }
+    );
+    if (!result)
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ delete: "failed", result: result });
+    return res.status(httpStatus.OK).json({ delete: "Done!", result: result });
+  });
+};
