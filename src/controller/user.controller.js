@@ -88,16 +88,14 @@ exports.addUser = (req, res) => {
 exports.deleteUser = async (req, res) => {
   const session = await mongoose.startSession();
   await session.withTransaction(async (session) => {
-    const url = `https://projectfifthyear.herokuapp.com/Users?sessionId=${req.body.sessionId}&userId=${req.body.teamMemberId}`;
+    const url = `https://projectfifthyear.herokuapp.com/Users?sessionId=${req.query.sessionId}&userId=${req.query.teamMemberId}`;
     const result = await axios.delete(url);
     await User.deleteOne(
       { userId: req.body.teamMemberId },
       { session: session }
     );
-    if (!result)
-      return res
-        .status(httpStatus.BAD_REQUEST)
-        .json({ delete: "failed", result: result });
-    return res.status(httpStatus.OK).json({ delete: "Done!", result: result });
+    if (result.status !== 200)
+      return res.status(httpStatus.BAD_REQUEST).json({ delete: "failed" });
+    return res.status(httpStatus.OK).json({ delete: "Done!" });
   });
 };
